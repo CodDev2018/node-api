@@ -40,6 +40,9 @@ class PostController {
     }
 
     async findPostMiddleware(req, res, next) {
+        if (req.user && req.user._id != req.params.userId) {
+            return res.status(403).json({ 'message': 'Usuário não tem permissão para acessar estes dados.' })
+        }
         var post = await Post.findOne({
             _id: req.params.id,
             user: req.params.userId

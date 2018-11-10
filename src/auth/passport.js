@@ -4,6 +4,7 @@ var passportJWT = require('passport-jwt')
 var JWTStrategy = passportJWT.Strategy
 var ExtractJwt = passportJWT.ExtractJwt
 var User = require('../model/user')
+var sha256 = require('crypto-js/sha256')
 
 passport.use(new LocalStrategy({
     usernameField: 'username',
@@ -11,8 +12,9 @@ passport.use(new LocalStrategy({
 },
     async function (username, password, cb) {
         try {
-            var user = await User.findOne({ username, password }).exec()
-            if (!user) {
+            password = sha256(password).toString()
+            var user = await User.findOne({ username }).exec()
+            if (!user || password !== user.password) {
                 return cb(null, false, { message: 'Nome de usuário ou senha incorreta.' })
             }
             return cb(null, user._id.toString(), { message: 'Atenticado com sucesso!' })

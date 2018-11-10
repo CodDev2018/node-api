@@ -1,6 +1,6 @@
 var User = require('../model/user')
 var passport = require('../auth/passport')
-var jwt = require('jsonwebtoken');
+var jwt = require('jsonwebtoken')
 
 class UserController {
 
@@ -14,12 +14,16 @@ class UserController {
     }
 
     async save(req, res) {
-        var user = await new User({
-            username: req.body.username,
-            password: req.body.password
-        }).save()
+        try {
+            var user = await new User({
+                username: req.body.username,
+                password: req.body.password
+            }).save()
 
-        res.json(user)
+            res.json(user)
+        } catch (err) {
+            res.status(500).json(err)
+        }
     }
 
     async get(req, res) {
@@ -41,6 +45,9 @@ class UserController {
     }
 
     async findUserMiddleware(req, res, next) {
+        if (req.user && req.user._id != req.params.userId) {
+            return res.status(403).json({ 'message': 'Usuário não tem permissão para acessar estes dados.' })
+        }
         var user = await User.findOne({ _id: req.params.userId }).exec()
         if (!user) {
             return res.status(404).json({ 'message': 'Usuário não encontrado' })
